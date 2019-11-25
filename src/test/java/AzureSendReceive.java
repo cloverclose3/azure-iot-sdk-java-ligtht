@@ -122,7 +122,7 @@ public class AzureSendReceive
                 Message msg = new Message(msgStr);
                 msg.setMessageId(java.util.UUID.randomUUID().toString());
                 System.out.println(msgStr);
-                client.sendEventAsync(msg, null, null);
+                client.sendEventAsync(msg);
             }
 
             catch (Exception e)

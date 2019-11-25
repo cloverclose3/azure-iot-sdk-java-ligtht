@@ -43,10 +43,10 @@ public class InternalClient
         this.deviceIO.close();
     }
 
-    public void sendEventAsync(Message message, IotHubEventCallback callback, Object callbackContext)
+    public void sendEventAsync(Message message)
     {
         //Codes_SRS_INTERNALCLIENT_21_010: [The sendEventAsync shall asynchronously send the message using the deviceIO connection.]
-        deviceIO.sendEventAsync(message, callback, callbackContext, this.config.getDeviceId());
+        deviceIO.sendEventAsync(message, this.config.getDeviceId());
     }
 
     /**

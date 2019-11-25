@@ -3,7 +3,6 @@
 
 package com.microsoft.azure.sdk.iot.device.transport;
 
-import com.microsoft.azure.sdk.iot.device.IotHubEventCallback;
 import com.microsoft.azure.sdk.iot.device.IotHubStatusCode;
 import com.microsoft.azure.sdk.iot.device.Message;
 
@@ -14,8 +13,6 @@ import com.microsoft.azure.sdk.iot.device.Message;
 public final class IotHubTransportPacket
 {
     private Message message;
-    private IotHubEventCallback eventCallback;
-    private Object callbackContext;
     private IotHubStatusCode status;
     private final long startTimeMillis;
     private int currentRetryAttempt;
@@ -24,16 +21,12 @@ public final class IotHubTransportPacket
      * Constructor.
      *
      * @param message the message to be sent.
-     * @param eventCallback the callback to be invoked when a response from the IoT Hub is received.
-     * @param callbackContext the context to be passed to the callback.
      * @param status the status code associated with the message
      * @param startTimeMillis the milliseconds since epoch that this packet was created. Used for tracking how long a
      *                        packet has been in process for
      * @throws IllegalArgumentException if startTimeMillis is 0 or negative
      */
     public IotHubTransportPacket(Message message,
-                                 IotHubEventCallback eventCallback,
-                                 Object callbackContext,
                                  IotHubStatusCode status,
                                  long startTimeMillis) throws IllegalArgumentException
     {
@@ -51,8 +44,6 @@ public final class IotHubTransportPacket
 
         // Codes_SRS_IOTHUBTRANSPORTPACKET_11_001: [The constructor shall save the message, callback, status, startTimeMillis, and callback context.]
         this.message = message;
-        this.eventCallback = eventCallback;
-        this.callbackContext = callbackContext;
         this.status = status;
         this.startTimeMillis = startTimeMillis;
     }
@@ -66,28 +57,6 @@ public final class IotHubTransportPacket
     {
         // Codes_SRS_IOTHUBTRANSPORTPACKET_11_002: [The function shall return the message given in the constructor.]
         return this.message;
-    }
-
-    /**
-     * Getter for the callback to be invoked when a response is received.
-     *
-     * @return the eventCallback function. It can be {@code null}.
-     */
-    public IotHubEventCallback getCallback()
-    {
-        // Codes_SRS_IOTHUBTRANSPORTPACKET_11_003: [The function shall return the event callback given in the constructor.]
-        return this.eventCallback;
-    }
-
-    /**
-     * Getter for the context to be passed to the callback when it is invoked.
-     *
-     * @return the callback context.
-     */
-    public Object getContext()
-    {
-        // Codes_SRS_IOTHUBTRANSPORTPACKET_11_004: [The function shall return the callback context given in the constructor.]
-        return this.callbackContext;
     }
 
     /**

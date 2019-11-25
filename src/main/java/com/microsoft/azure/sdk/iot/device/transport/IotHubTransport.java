@@ -29,8 +29,6 @@ public class IotHubTransport  implements IotHubListener
     private final Map<String, IotHubTransportPacket> inProgressPackets = new ConcurrentHashMap<>();
     /* Messages received from the IoT Hub */
     private final Queue<IotHubTransportMessage> receivedMessagesQueue = new ConcurrentLinkedQueue<>();
-    /* Messages whose callbacks that are waiting to be invoked. */
-    private final Queue<IotHubTransportPacket> callbackPacketsQueue = new ConcurrentLinkedQueue<>();
     final private Object reconnectionLock = new Object();
     private volatile IotHubConnectionStatus connectionStatus;
     private long receivePeriodInMilliseconds;
@@ -85,7 +83,6 @@ public class IotHubTransport  implements IotHubListener
                 // packet to OK_EMPTY and add it to the callbacks queue.]
                 System.out.println("Message was sent by this client, adding it to callbacks queue with OK_EMPTY ({})" + message);
                 packet.setStatus(IotHubStatusCode.OK_EMPTY);
-                this.addToCallbackQueue(packet);
             }
             else
             {
@@ -223,21 +220,6 @@ public class IotHubTransport  implements IotHubListener
         System.out.println("Client connection opened successfully");
     }
 
-
-    /**
-     * Adds the packet to the callback queue if the provided packet has a callback. The packet is ignored otherwise.
-     * @param packet the packet to add
-     */
-    private void addToCallbackQueue(IotHubTransportPacket packet)
-    {
-        //Codes_SRS_IOTHUBTRANSPORT_28_002: [This function shall add the packet to the callback queue if it has a callback.]
-        if (packet.getCallback() != null)
-        {
-            this.callbackPacketsQueue.add(packet);
-        }
-    }
-
-
     /**
      * Registers a callback to be executed whenever the connection status to the IoT Hub has changed.
      *
@@ -268,7 +250,6 @@ public class IotHubTransport  implements IotHubListener
         while (packet != null)
         {
             packet.setStatus(IotHubStatusCode.MESSAGE_CANCELLED_ONCLOSE);
-            this.addToCallbackQueue(packet);
 
             packet = this.waitingPacketsQueue.poll();
         }
@@ -281,7 +262,6 @@ public class IotHubTransport  implements IotHubListener
             {
                 IotHubTransportPacket inProgressPacket = packetEntry.getValue();
                 inProgressPacket.setStatus(IotHubStatusCode.MESSAGE_CANCELLED_ONCLOSE);
-                this.addToCallbackQueue(inProgressPacket);
             }
 
             inProgressPackets.clear();
@@ -374,12 +354,8 @@ public class IotHubTransport  implements IotHubListener
      * Adds a message to the transport queue.
      *
      * @param message the message to be sent.
-     * @param callback the callback to be invoked when a response for the
-     * message is received.
-     * @param callbackContext the context to be passed in when the callback is
-     * invoked.
      */
-    public void addMessage(Message message, IotHubEventCallback callback, Object callbackContext)
+    public void addMessage(Message message)
     {
         if (this.connectionStatus == IotHubConnectionStatus.DISCONNECTED)
         {
@@ -390,7 +366,7 @@ public class IotHubTransport  implements IotHubListener
 
         //Codes_SRS_IOTHUBTRANSPORT_34_042: [This function shall build a transport packet from the provided message,
         // callback, and context and then add that packet to the waiting queue.]
-        IotHubTransportPacket packet = new IotHubTransportPacket(message, callback, callbackContext, null, System.currentTimeMillis());
+        IotHubTransportPacket packet = new IotHubTransportPacket(message, null, System.currentTimeMillis());
         this.waitingPacketsQueue.add(packet);
         System.out.println("Message was queued to be sent later: " + message);
     }
